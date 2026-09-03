@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Painel · Nexa Web</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#05050a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#05050a; --void-2:#0a0a12;
+  --panel:rgba(255,255,255,.035); --panel-2:rgba(255,255,255,.055);
+  --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.18);
+  --ink:#f3f4f8; --ink-dim:#9295a6; --ink-faint:#5d6070;
+  --ir-1:#1fae5f; --ir-2:#2f6fed; --ir-3:#8b3ff0; --ir-4:#f2861a;
+  --accent:#2f6fed; --accent-light:#7db4ff; --accent-soft:rgba(47,111,237,.16);
+  --r-pill:999px; --r-lg:26px; --r-md:18px;
+  --ease:cubic-bezier(.16,1,.3,1); --shell:min(1320px,94vw);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--void);color:var(--ink);
+  font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.6;
+  overflow-x:hidden;-webkit-font-smoothing:antialiased;
+}
+img,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button,input,textarea,select{font:inherit;color:inherit}
+::selection{background:var(--accent);color:#fff}
+:focus-visible{outline:2px solid var(--accent-light);outline-offset:3px;border-radius:12px}
+.mono{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.2em;text-transform:uppercase}
+
+.fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:.22}
+.o1{width:50vw;height:50vw;top:-16vh;left:-12vw;background:radial-gradient(circle,var(--ir-2),transparent 68%)}
+.o2{width:42vw;height:42vw;bottom:-14vh;right:-12vw;background:radial-gradient(circle,var(--ir-3),transparent 68%)}
+#grain{
+  position:fixed;inset:-50%;z-index:2;pointer-events:none;opacity:.4;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+  mix-blend-mode:overlay;
+}
+.wrap{position:relative;z-index:3}
+
+/* ---------- topo ---------- */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:16px calc((100vw - var(--shell))/2);
+  background:rgba(10,10,18,.78);border-bottom:1px solid var(--line);
+  backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand .mark{width:26px;height:26px;filter:drop-shadow(0 0 8px rgba(47,111,237,.55))}
+.brand .name{font-family:'Archivo',sans-serif;font-variation-settings:'wdth' 112;font-weight:700;text-transform:uppercase;letter-spacing:.24em;font-size:.76rem}
+.brand .tag{font-family:'JetBrains Mono',monospace;font-size:.54rem;letter-spacing:.2em;text-transform:uppercase;color:var(--accent-light);border:1px solid var(--accent);border-radius:var(--r-pill);padding:4px 10px;margin-left:4px}
+.top-right{display:flex;align-items:center;gap:10px}
+.who{font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:.14em;color:var(--ink-faint);text-transform:uppercase}
+@media(max-width:640px){.who{display:none}}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;
+  border-radius:var(--r-pill);padding:12px 20px;min-height:44px;
+  font-family:'JetBrains Mono',monospace;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+  transition:all .4s var(--ease);
+}
+.btn svg{width:15px;height:15px}
+.btn-ghost{border:1px solid var(--line-2);color:var(--ink);background:transparent}
+.btn-ghost:hover{border-color:var(--ink);background:var(--panel)}
+.btn-solid{border:0;background:linear-gradient(105deg,#fff,#dfe2ee 45%,#fff);color:#07070d}
+.btn-solid:hover{transform:translateY(-2px)}
+.btn-danger{border:1px solid rgba(255,107,138,.4);color:#ff6b8a;background:transparent}
+.btn-danger:hover{background:rgba(255,107,138,.1);border-color:#ff6b8a}
+
+main{width:var(--shell);margin:0 auto;padding:34px 0 90px}
+
+/* ---------- login ---------- */
+.login-wrap{min-height:78vh;display:grid;place-items:center;padding:20px}
+.login-card{
+  width:min(420px,100%);border:1px solid var(--line);border-radius:var(--r-lg);padding:38px;
+  background:linear-gradient(200deg,var(--panel-2),transparent 72%),rgba(10,10,18,.6);
+  backdrop-filter:blur(16px);
+}
+.login-card h1{
+  font-family:'Archivo',sans-serif;font-variation-settings:'wdth' 116;font-weight:800;
+  text-transform:uppercase;font-size:1.6rem;letter-spacing:-.03em;line-height:1;margin:20px 0 10px;
+}
+.login-card p{color:var(--ink-dim);font-size:.88rem;margin:0 0 28px}
+label{display:block;font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:9px}
+input[type=text],input[type=email],input[type=password],input[type=search]{
+  width:100%;background:rgba(255,255,255,.04);border:1px solid var(--line);
+  border-radius:14px;padding:14px 16px;color:var(--ink);font-size:.9rem;
+  transition:border-color .35s,box-shadow .35s;
+}
+input::placeholder{color:var(--ink-faint)}
+input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.field{margin-bottom:18px}
+.pass{position:relative}
+.pass input{padding-right:52px}
+.pass button{
+  position:absolute;top:50%;right:8px;transform:translateY(-50%);
+  width:38px;height:38px;border:0;background:none;color:var(--ink-faint);
+  cursor:pointer;display:grid;place-items:center;border-radius:10px;transition:color .3s;
+}
+.pass button:hover,.pass button.on{color:var(--accent-light)}
+.pass button svg{width:19px;height:19px}
+.msg b{color:var(--accent-light);font-weight:500}
+.msg{margin-top:16px;font-size:.82rem;color:#ff6b8a;min-height:20px}
+.msg.ok{color:#3ee27f}
+
+/* ---------- filtros ---------- */
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:26px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{
+  padding:11px 18px;border-radius:var(--r-pill);border:1px solid var(--line);
+  background:var(--panel);color:var(--ink-dim);cursor:pointer;font-size:.78rem;
+  transition:all .35s var(--ease);display:inline-flex;align-items:center;gap:8px;
+}
+.tab:hover{border-color:var(--line-2);color:var(--ink)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.tab b{font-family:'JetBrains Mono',monospace;font-size:.62rem;opacity:.75}
+.search{flex:1;min-width:200px;max-width:340px}
+
+/* ---------- lista ---------- */
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+.item{
+  border:1px solid var(--line);border-radius:var(--r-md);padding:22px;cursor:pointer;
+  background:var(--panel);text-align:left;width:100%;position:relative;overflow:hidden;
+  transition:transform .5s var(--ease),border-color .4s var(--ease);
+}
+.item:hover{transform:translateY(-5px);border-color:var(--line-2)}
+.item-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
+.codigo{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.16em;color:var(--ink-faint)}
+.badge{
+  font-family:'JetBrains Mono',monospace;font-size:.5rem;letter-spacing:.16em;text-transform:uppercase;
+  padding:5px 11px;border-radius:var(--r-pill);border:1px solid currentColor;white-space:nowrap;
+}
+.badge.novo{color:#3ee27f}
+.badge.andamento{color:var(--accent-light)}
+.badge.concluido{color:var(--ink-faint)}
+.item h3{
+  font-family:'Archivo',sans-serif;font-variation-settings:'wdth' 114;font-weight:800;
+  text-transform:uppercase;font-size:1.12rem;letter-spacing:-.025em;line-height:1.05;margin:0 0 6px;
+}
+.item .sub{color:var(--ink-dim);font-size:.82rem;margin-bottom:16px}
+.item-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:14px;border-top:1px solid var(--line)}
+.item-val{font-family:'Archivo',sans-serif;font-variation-settings:'wdth' 110;font-weight:700;font-size:1rem;letter-spacing:-.02em}
+.item-meta{font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:.12em;color:var(--ink-faint);display:flex;align-items:center;gap:7px}
+.item-meta svg{width:12px;height:12px}
+
+.empty{
+  border:1px dashed var(--line-2);border-radius:var(--r-lg);padding:60px 30px;text-align:center;color:var(--ink-faint);
+}
+.empty b{display:block;font-family:'Archivo',sans-serif;font-variation-settings:'wdth' 114;font-weight:800;text-transform:uppercase;font-size:1.2rem;color:var(--ink-dim);margin-bottom:10px;letter-spacing:-.02em}
+.loading{text-align:center;padding:70px 20px;color:var(--ink-faint);font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase}
+
+/* ---------- detalhe ---------- */
+.detail{display:none}
+.detail.show{display:block;animation:up .5s var(--ease) both}
+@keyframes up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:26px}
+.detail-head h2{
+  font-family:'Archivo',sans-serif;font-variation-settings:'wdth' 118;font-weight:800;
+  text-transform:uppercase;font-size:clamp(1.6rem,5vw,2.6rem);letter-spacing:-.035em;line-height:.95;margin:8px 0 0;
+}
+.cols{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));align-items:start}
+.block{
+  border:1px solid var(--line);border-radius:var(--r-md);padding:24px;background:var(--panel);
+}
+.block h4{
+  font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--accent-light);margin:0 0 18px;font-weight:500;
+}
+.row{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid var(--line);font-size:.86rem}
+.row:last-child{border-bottom:0;padding-bottom:0}
+.row span{color:var(--ink-faint);flex-shrink:0}
+.row b{font-weight:500;text-align:right;word-break:break-word}
+.row a{color:var(--accent-light)}
+.tag-list{display:flex;flex-wrap:wrap;gap:7px}
+.tag{padding:7px 13px;border-radius:var(--r-pill);border:1px solid var(--line);background:var(--panel-2);font-size:.76rem;color:var(--ink-dim)}
+.longtext{font-size:.88rem;color:var(--ink-dim);line-height:1.7;white-space:pre-wrap}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.gal a{display:block;border-radius:14px;overflow:hidden;border:1px solid var(--line);position:relative;aspect-ratio:1}
+.gal img{width:100%;height:100%;object-fit:cover}
+.gal a span{
+  position:absolute;inset:auto 0 0 0;background:rgba(5,5,10,.86);text-align:center;
+  font-family:'JetBrains Mono',monospace;font-size:.5rem;letter-spacing:.16em;text-transform:uppercase;padding:6px;color:var(--accent-light);
+}
+.detail-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.status-pick{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.big-val{
+  font-family:'Archivo',sans-serif;font-variation-settings:'wdth' 112;font-weight:800;
+  font-size:1.9rem;letter-spacing:-.03em;line-height:1;margin-bottom:6px;
+}
+.big-val+.mono{color:var(--ink-faint);display:block}
+
+@media(max-width:640px){
+  .topbar{padding:13px 3vw}
+  main{padding:24px 0 70px}
+  .block{padding:20px}
+  .btn{padding:11px 16px;font-size:.6rem}
+}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition-duration:.01ms !important}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="markIrid" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1fae5f"/><stop offset="45%" stop-color="#2f6fed"/><stop offset="100%" stop-color="#8b3ff0"/>
+    </linearGradient>
+    <linearGradient id="markSilver" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#9aa0b5"/>
+    </linearGradient>
+    <g id="nexaMarkShape">
+      <path d="M17.2 41.2 A34 34 0 1 1 74 74" fill="none" stroke="url(#markIrid)" stroke-width="7" stroke-linecap="round"/>
+      <path d="M28.8 71.2 A30 30 0 0 0 79 42.2" fill="none" stroke="url(#markSilver)" stroke-width="5" stroke-linecap="round"/>
+      <path d="M24 27 L24 49 L48 74 L48 49 Z" fill="url(#markIrid)"/>
+      <path d="M49 40 L57 63 L65 48 L73 63 L81 40" fill="none" stroke="url(#markSilver)" stroke-width="7.5" stroke-linecap="square" stroke-linejoin="miter"/>
+    </g>
+  </defs>
+</svg>
+
+<div class="fx" aria-hidden="true"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div id="grain" aria-hidden="true"></div>
+
+<div class="wrap">
+
+<div class="topbar">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 100 100" aria-hidden="true"><use href="#nexaMarkShape"></use></svg>
+    <span class="name">Nexa Web</span>
+    <span class="tag">Painel</span>
+  </div>
+  <div class="top-right">
+    <span class="who" id="who"></span>
+    <button class="btn btn-ghost" id="btnReload" type="button" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+      Atualizar
+    </button>
+    <button class="btn btn-ghost" id="btnOut" type="button" style="display:none">Sair</button>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginView">
+  <div class="login-card">
+    <svg viewBox="0 0 100 100" style="width:44px;height:44px" aria-hidden="true"><use href="#nexaMarkShape"></use></svg>
+    <h1>Área restrita</h1>
+    <p>Entre com a conta cadastrada para ver os briefings recebidos.</p>
+    <div class="field">
+      <label for="email">E-mail</label>
+      <input type="email" id="email" placeholder="seu@email.com" autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="senha">Senha</label>
+      <div class="pass">
+        <input type="password" id="senha" placeholder="••••••••" autocomplete="current-password">
+        <button type="button" id="verSenha" aria-label="Mostrar senha">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12S5 5.5 12 5.5 22.5 12 22.5 12 19 18.5 12 18.5 1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3.2"/></svg>
+        </button>
+      </div>
+    </div>
+    <button class="btn btn-solid" id="btnIn" type="button" style="width:100%">Entrar</button>
+    <div class="msg" id="loginMsg"></div>
+  </div>
+</div>
+
+<!-- LISTA -->
+<main id="appView" style="display:none">
+  <div class="toolbar">
+    <div class="tabs" id="tabs"></div>
+    <input class="search" type="search" id="busca" placeholder="Buscar por nome, negócio ou protocolo...">
+  </div>
+  <div id="lista"><div class="loading">Carregando briefings</div></div>
+  <div class="detail" id="detalhe"></div>
+</main>
+
+</div>
+
+<script src="nexa-config.js"></script>
+<script type="module">
+const CFG = window.NEXA_CONFIG || {};
+const SB = CFG.supabase || {};
+const $ = id => document.getElementById(id);
+const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const brl = v => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
+
+const STATUS = {
+  novo:      { rotulo:'Novo' },
+  andamento: { rotulo:'Em andamento' },
+  concluido: { rotulo:'Concluído' }
+};
+
+const BALDE  = SB.bucket || 'briefings';
+const TABELA = SB.tabela || 'briefings';
+const CONFIGURADO = !!(SB.url && SB.anonKey && SB.url.indexOf('COLE_') !== 0 && SB.anonKey.indexOf('COLE_') !== 0);
+
+/* o e-mail e a senha aparecem sempre, mesmo antes do banco estar ligado */
+if(CFG.adminEmail && CFG.adminEmail.indexOf('seu@') !== 0) $('email').value = CFG.adminEmail;
+
+$('verSenha').addEventListener('click', () => {
+  const i = $('senha');
+  const mostrando = i.type === 'text';
+  i.type = mostrando ? 'password' : 'text';
+  $('verSenha').setAttribute('aria-label', mostrando ? 'Mostrar senha' : 'Ocultar senha');
+  $('verSenha').classList.toggle('on', !mostrando);
+});
+$('email').addEventListener('keydown', e => { if(e.key === 'Enter') $('senha').focus(); });
+
+if(CONFIGURADO){
+  iniciar();
+} else {
+  $('loginMsg').innerHTML = 'O banco ainda não foi ligado. Abra o arquivo <b>nexa-config.js</b> e cole a URL e a chave anon do seu projeto Supabase.';
+  $('btnIn').addEventListener('click', () => {
+    $('loginMsg').innerHTML = 'Ainda não dá para entrar: falta preencher o Supabase em <b>nexa-config.js</b>.';
+  });
+}
+
+async function iniciar(){
+  const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.45.4');
+  const db = createClient(SB.url, SB.anonKey);
+
+  let dados = [];
+  let filtro = 'todos';
+  let termo = '';
+
+  /* ---------- login ---------- */
+  $('btnIn').addEventListener('click', entrar);
+  $('senha').addEventListener('keydown', e => { if(e.key === 'Enter') entrar(); });
+
+  async function entrar(){
+    const email = $('email').value.trim(), senha = $('senha').value;
+    $('loginMsg').classList.remove('ok');
+    if(!email || !senha){ $('loginMsg').textContent = 'Preencha o e-mail e a senha.'; return; }
+
+    $('loginMsg').textContent = '';
+    $('btnIn').disabled = true;
+    $('btnIn').textContent = 'Entrando...';
+    const { error } = await db.auth.signInWithPassword({ email, password: senha });
+    $('btnIn').disabled = false;
+    $('btnIn').textContent = 'Entrar';
+
+    if(error){
+      const m = {
+        'Invalid login credentials':'E-mail ou senha incorretos.',
+        'Email not confirmed':'Confirme o e-mail antes de entrar.'
+      };
+      $('loginMsg').textContent = m[error.message] || 'Não consegui entrar: ' + error.message;
+    }
+  }
+
+  $('btnOut').addEventListener('click', () => db.auth.signOut());
+  $('btnReload').addEventListener('click', carregar);
+
+  db.auth.onAuthStateChange((_evento, sessao) => aplicarSessao(sessao));
+  const { data: { session } } = await db.auth.getSession();
+  aplicarSessao(session);
+
+  function aplicarSessao(sessao){
+    const dentro = !!(sessao && sessao.user);
+    $('loginView').style.display = dentro ? 'none' : 'grid';
+    $('appView').style.display = dentro ? 'block' : 'none';
+    $('btnOut').style.display = dentro ? 'inline-flex' : 'none';
+    $('btnReload').style.display = dentro ? 'inline-flex' : 'none';
+    $('who').textContent = dentro ? sessao.user.email : '';
+    if(dentro) carregar();
+  }
+
+  /* ---------- carregar ---------- */
+  async function carregar(){
+    $('detalhe').classList.remove('show');
+    $('lista').style.display = '';
+    $('lista').innerHTML = '<div class="loading">Carregando briefings</div>';
+
+    const { data, error } = await db.from(TABELA).select('*').order('criado_em', { ascending:false });
+    if(error){
+      $('lista').innerHTML = '<div class="empty"><b>Não consegui carregar</b>' + esc(error.message) + '</div>';
+      return;
+    }
+    dados = data || [];
+    render();
+  }
+
+  /* ---------- lista ---------- */
+  function filtrados(){
+    return dados.filter(d => {
+      if(filtro !== 'todos' && (d.status || 'novo') !== filtro) return false;
+      if(!termo) return true;
+      const alvo = [d.codigo, d.negocio && d.negocio.nome, d.cliente && d.cliente.nome,
+                    d.negocio && d.negocio.cidade].join(' ').toLowerCase();
+      return alvo.includes(termo);
+    });
+  }
+
+  function render(){
+    const contas = { todos:dados.length, novo:0, andamento:0, concluido:0 };
+    dados.forEach(d => { const k = d.status || 'novo'; contas[k] = (contas[k] || 0) + 1; });
+
+    $('tabs').innerHTML = [['todos','Todos'],['novo','Novos'],['andamento','Em andamento'],['concluido','Concluídos']]
+      .map(([k,r]) => `<button type="button" class="tab ${filtro===k?'active':''}" data-f="${k}">${r}<b>${contas[k]||0}</b></button>`).join('');
+
+    const lista = filtrados();
+    if(!lista.length){
+      $('lista').innerHTML = '<div class="empty"><b>Nada por aqui</b>' +
+        (dados.length ? 'Nenhum briefing bate com esse filtro.' : 'Assim que alguém preencher o agendamento, aparece nesta tela.') + '</div>';
+      return;
+    }
+
+    $('lista').innerHTML = '<div class="grid">' + lista.map(d => {
+      const st = d.status || 'novo';
+      const data = d.criado_em ? new Date(d.criado_em).toLocaleDateString('pt-BR', { day:'2-digit', month:'short' }) : '';
+      const nImg = (d.imagens || []).length;
+      return `<button type="button" class="item" data-id="${esc(d.id)}">
+        <div class="item-top">
+          <span class="codigo">${esc(d.codigo || '')}</span>
+          <span class="badge ${st}">${STATUS[st] ? STATUS[st].rotulo : st}</span>
+        </div>
+        <h3>${esc((d.negocio && d.negocio.nome) || 'Sem nome')}</h3>
+        <div class="sub">${esc((d.projeto && d.projeto.tipo) || '')} · ${esc((d.projeto && d.projeto.plano) || '')}</div>
+        <div class="item-foot">
+          <span class="item-val">${esc((d.projeto && d.projeto.total) || '')}</span>
+          <span class="item-meta">
+            ${nImg ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>${nImg}` : ''}
+            ${esc(data)}
+          </span>
+        </div>
+      </button>`;
+    }).join('') + '</div>';
+  }
+
+  $('tabs').addEventListener('click', e => {
+    const t = e.target.closest('.tab'); if(!t) return;
+    filtro = t.dataset.f; render();
+  });
+  $('busca').addEventListener('input', e => { termo = e.target.value.trim().toLowerCase(); render(); });
+  $('lista').addEventListener('click', e => {
+    const it = e.target.closest('.item'); if(!it) return;
+    abrir(it.dataset.id);
+  });
+
+  /* ---------- detalhe ---------- */
+  function linha(rot, valor, link){
+    if(!valor) return '';
+    const v = link ? `<a href="${esc(link)}" target="_blank" rel="noopener">${esc(valor)}</a>` : esc(valor);
+    return `<div class="row"><span>${rot}</span><b>${v}</b></div>`;
+  }
+
+  /* o balde é privado: os links das imagens valem 1 hora */
+  async function linksDasImagens(imagens){
+    if(!imagens || !imagens.length) return [];
+    const caminhos = imagens.map(i => i.caminho);
+    const { data, error } = await db.storage.from(BALDE).createSignedUrls(caminhos, 3600);
+    if(error || !data) return imagens.map(i => Object.assign({}, i, { url:null }));
+    return imagens.map((im, k) => Object.assign({}, im, { url: data[k] && data[k].signedUrl }));
+  }
+
+  async function abrir(id){
+    const d = dados.find(x => String(x.id) === String(id)); if(!d) return;
+    const st = d.status || 'novo';
+    const neg = d.negocio || {}, site = d.site || {}, esco = d.escopo || {}, cli = d.cliente || {}, proj = d.projeto || {};
+    const zap = (cli.whatsapp || '').replace(/\D/g, '');
+    const quando = d.criado_em ? new Date(d.criado_em).toLocaleString('pt-BR') : '';
+
+    $('lista').style.display = 'none';
+    $('detalhe').classList.add('show');
+    $('detalhe').innerHTML = '<div class="loading">Abrindo</div>';
+    window.scrollTo({ top:0, behavior:'smooth' });
+
+    const imgs = await linksDasImagens(d.imagens);
+
+    $('detalhe').innerHTML = `
+      <button class="btn btn-ghost" id="btnVoltar" type="button" style="margin-bottom:22px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        Voltar
+      </button>
+
+      <div class="detail-head">
+        <div>
+          <div class="codigo">${esc(d.codigo || '')} · ${esc(quando)}</div>
+          <h2>${esc(neg.nome || 'Sem nome')}</h2>
+        </div>
+        <span class="badge ${st}">${STATUS[st] ? STATUS[st].rotulo : st}</span>
+      </div>
+
+      <div class="cols">
+        <div class="block">
+          <h4>Projeto</h4>
+          <div class="big-val">${esc(proj.total || '')}</div>
+          <span class="mono">pagamento único</span>
+          <div style="margin-top:18px">
+            ${linha('Tipo', proj.tipo)}
+            ${linha('Plano', proj.plano)}
+            ${(proj.adicionais || []).map(a => linha('Adicional', a.nome + ' — ' + brl(a.valor))).join('')}
+          </div>
+        </div>
+
+        <div class="block">
+          <h4>Cliente</h4>
+          ${linha('Nome', cli.nome)}
+          ${linha('WhatsApp', cli.whatsapp, zap ? 'https://wa.me/55' + zap : '')}
+          ${linha('E-mail', cli.email, cli.email ? 'mailto:' + cli.email : '')}
+          ${linha('Melhor dia', cli.dia ? cli.dia.split('-').reverse().join('/') + (cli.hora ? ' às ' + cli.hora : '') : '')}
+          ${linha('Prazo', cli.prazo)}
+        </div>
+
+        <div class="block">
+          <h4>Negócio</h4>
+          ${linha('Ramo', neg.ramo)}
+          ${linha('Cidade', neg.cidade)}
+          ${linha('Logo', neg.logo)}
+        </div>
+
+        <div class="block">
+          <h4>Dados que vão no site</h4>
+          ${linha('Telefone', site.telefone)}
+          ${linha('E-mail', site.email)}
+          ${linha('Endereço', site.endereco)}
+          ${linha('Horário', site.horario)}
+          ${linha('Instagram', site.instagram)}
+          ${linha('Facebook', site.facebook)}
+          ${linha('YouTube', site.youtube)}
+          ${linha('TikTok', site.tiktok)}
+          ${!(site.telefone||site.email||site.endereco||site.horario||site.instagram||site.facebook||site.youtube||site.tiktok) ? '<div class="longtext">Não informado.</div>' : ''}
+        </div>
+
+        <div class="block">
+          <h4>Escopo</h4>
+          ${(esco.funcoes || []).length ? `<div class="tag-list" style="margin-bottom:16px">${esco.funcoes.map(f => `<span class="tag">${esc(f)}</span>`).join('')}</div>` : ''}
+          ${linha('Páginas', esco.paginas)}
+          ${linha('Estilo', esco.estilo)}
+          ${linha('Cores', esco.cores)}
+          ${linha('Referência', esco.referencia)}
+          ${esco.observacoes ? `<div style="margin-top:16px"><span class="mono" style="color:var(--ink-faint);display:block;margin-bottom:8px">Observações</span><div class="longtext">${esc(esco.observacoes)}</div></div>` : ''}
+        </div>
+
+        ${imgs.length ? `<div class="block">
+          <h4>Imagens enviadas (${imgs.length})</h4>
+          <div class="gal">${imgs.map((im,k) => im.url
+            ? `<a href="${esc(im.url)}" target="_blank" rel="noopener"><img src="${esc(im.url)}" alt="Referência ${k+1}" loading="lazy"><span>abrir</span></a>`
+            : `<a><span>indisponível</span></a>`).join('')}</div>
+        </div>` : ''}
+      </div>
+
+      <div class="block" style="margin-top:16px">
+        <h4>Status</h4>
+        <div class="status-pick">
+          ${Object.keys(STATUS).map(k => `<button type="button" class="tab ${st===k?'active':''}" data-st="${k}">${STATUS[k].rotulo}</button>`).join('')}
+        </div>
+        <div class="detail-actions">
+          ${zap ? `<a class="btn btn-solid" href="https://wa.me/55${esc(zap)}" target="_blank" rel="noopener">Falar com o cliente</a>` : ''}
+          <button class="btn btn-ghost" id="btnCopiar" type="button">Copiar resumo</button>
+          <button class="btn btn-danger" id="btnExcluir" type="button">Excluir</button>
+        </div>
+        <div class="msg" id="detMsg"></div>
+      </div>`;
+
+    $('btnVoltar').addEventListener('click', () => {
+      $('detalhe').classList.remove('show');
+      $('lista').style.display = '';
+      window.scrollTo({ top:0, behavior:'smooth' });
+    });
+
+    $('detalhe').querySelectorAll('[data-st]').forEach(b => b.addEventListener('click', async () => {
+      const novo = b.dataset.st;
+      const { error } = await db.from(TABELA).update({ status: novo }).eq('id', d.id);
+      if(error){ $('detMsg').textContent = 'Não consegui salvar: ' + error.message; return; }
+      d.status = novo;
+      render(); abrir(id);
+    }));
+
+    $('btnCopiar').addEventListener('click', async () => {
+      const txt = [
+        d.codigo, '', neg.nome, [proj.tipo, proj.plano, proj.total].filter(Boolean).join(' · '), '',
+        'Cliente: ' + (cli.nome || '') + ' — ' + (cli.whatsapp || ''),
+        site.telefone ? 'Telefone do site: ' + site.telefone : '',
+        site.email ? 'E-mail do site: ' + site.email : '',
+        site.endereco ? 'Endereço: ' + site.endereco : '',
+        (esco.funcoes || []).length ? 'Funções: ' + esco.funcoes.join(', ') : '',
+        esco.observacoes ? 'Obs: ' + esco.observacoes : ''
+      ].filter(Boolean).join('\n');
+      try{
+        await navigator.clipboard.writeText(txt);
+        $('detMsg').textContent = 'Resumo copiado.';
+        $('detMsg').classList.add('ok');
+      }catch(e){ $('detMsg').textContent = 'Não consegui copiar.'; }
+    });
+
+    $('btnExcluir').addEventListener('click', async () => {
+      if(!confirm('Excluir o briefing ' + d.codigo + '? Isso não tem volta.')) return;
+      if((d.imagens || []).length){
+        await db.storage.from(BALDE).remove(d.imagens.map(i => i.caminho));
+      }
+      const { error } = await db.from(TABELA).delete().eq('id', d.id);
+      if(error){ $('detMsg').textContent = 'Não consegui excluir: ' + error.message; return; }
+      dados = dados.filter(x => x.id !== d.id);
+      $('detalhe').classList.remove('show');
+      $('lista').style.display = '';
+      render();
+    });
+  }
+}
+</script>
+</body>
+</html>
