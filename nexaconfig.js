@@ -19,12 +19,12 @@ window.NEXA_CONFIG = {
      NUNCA cole aqui a service_role.
      --------------------------------------------------------- */
   supabase: {
-    url:     'COLE_AQUI',
-    anonKey: 'COLE_AQUI',
+    url:     'https://dcikmlblvpayzmnfqznq.supabase.co',
+    anonKey: 'sb_publishable_ZgLfnx_kYuEwhY-uVayUMA_ToUej3ig',
     tabela:  'briefings',
     bucket:  'briefings'
   },
 
   /* E-mail que já vem preenchido na tela de login */
-  adminEmail: 'seu@email.com'
+  adminEmail: 'enzokaleb01@gmail.com'
 };
