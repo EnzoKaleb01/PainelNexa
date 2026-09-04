@@ -26,5 +26,5 @@ window.NEXA_CONFIG = {
   },
 
   /* E-mail que já vem preenchido na tela de login */
-  adminEmail: 'enzokaleb01@gmail.com'
+  adminEmail: ''
 };
