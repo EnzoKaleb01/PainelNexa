@@ -6,6 +6,11 @@
 <title>Painel · Nexa Web</title>
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#05050a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icone-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icone-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Nexa Painel">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -97,18 +102,57 @@ input[type=text],input[type=email],input[type=password],input[type=search]{
 input::placeholder{color:var(--ink-faint)}
 input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 .field{margin-bottom:18px}
-.pass{position:relative}
-.pass input{padding-right:52px}
-.pass button{
-  position:absolute;top:50%;right:8px;transform:translateY(-50%);
-  width:38px;height:38px;border:0;background:none;color:var(--ink-faint);
-  cursor:pointer;display:grid;place-items:center;border-radius:10px;transition:color .3s;
-}
-.pass button:hover,.pass button.on{color:var(--accent-light)}
-.pass button svg{width:19px;height:19px}
 .msg b{color:var(--accent-light);font-weight:500}
 .msg{margin-top:16px;font-size:.82rem;color:#ff6b8a;min-height:20px}
 .msg.ok{color:#3ee27f}
+
+/* ---------- números ---------- */
+.stats{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-bottom:24px}
+.stat{
+  border:1px solid var(--line);border-radius:var(--r-md);padding:20px 22px;background:var(--panel);
+  position:relative;overflow:hidden;
+}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--sc,var(--accent))}
+.stat .n{
+  font-family:'Archivo',sans-serif;font-variation-settings:'wdth' 112;font-weight:800;
+  font-size:1.9rem;letter-spacing:-.03em;line-height:1;color:var(--sc,var(--ink));
+}
+.stat .r{font-family:'JetBrains Mono',monospace;font-size:.54rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);margin-top:9px}
+
+/* ---------- sino ---------- */
+.btn-ico{padding:11px;width:44px;position:relative}
+.btn-ico svg{width:17px;height:17px}
+.sino-off{
+  position:absolute;top:50%;left:50%;width:22px;height:1.6px;background:#ff6b8a;
+  transform:translate(-50%,-50%) rotate(-45deg);border-radius:2px;
+}
+#btnSino.on{border-color:var(--accent);color:var(--accent-light)}
+#btnSino.on .sino-off{display:none}
+#btnSino.on svg{animation:toca 2.4s var(--ease) infinite}
+@keyframes toca{0%,88%,100%{transform:none}92%{transform:rotate(-11deg)}96%{transform:rotate(9deg)}}
+
+/* ---------- avisos ---------- */
+.toasts{position:fixed;right:16px;bottom:16px;z-index:200;display:flex;flex-direction:column;gap:10px;max-width:min(340px,92vw)}
+.toast{
+  border:1px solid var(--line-2);border-radius:var(--r-md);padding:16px 18px;
+  background:rgba(10,10,18,.94);backdrop-filter:blur(16px);
+  box-shadow:0 20px 50px rgba(0,0,0,.6);cursor:pointer;
+  animation:entra .5s var(--ease) both;
+}
+@keyframes entra{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:none}}
+.toast.sai{animation:sai .4s var(--ease) both}
+@keyframes sai{to{opacity:0;transform:translateX(24px)}}
+.toast .t{
+  font-family:'JetBrains Mono',monospace;font-size:.54rem;letter-spacing:.2em;text-transform:uppercase;
+  color:#3ee27f;margin-bottom:8px;display:flex;align-items:center;gap:8px;
+}
+.toast .t i{width:7px;height:7px;border-radius:50%;background:#3ee27f;display:block;animation:pisca 1.4s ease infinite}
+@keyframes pisca{50%{opacity:.3}}
+.toast b{display:block;font-family:'Archivo',sans-serif;font-variation-settings:'wdth' 114;font-weight:800;text-transform:uppercase;font-size:1rem;letter-spacing:-.02em;margin-bottom:4px}
+.toast span{font-size:.8rem;color:var(--ink-dim)}
+@media(max-width:640px){.toasts{left:16px;right:16px;bottom:16px;max-width:none}}
+.novo-flash{animation:flash 2.4s var(--ease) both}
+@keyframes flash{0%{border-color:#3ee27f;box-shadow:0 0 0 3px rgba(62,226,127,.18)}100%{border-color:var(--line);box-shadow:none}}
 
 /* ---------- filtros ---------- */
 .toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:26px}
@@ -237,40 +281,39 @@ input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--a
   </div>
   <div class="top-right">
     <span class="who" id="who"></span>
+    <button class="btn btn-ghost btn-ico" id="btnSino" type="button" title="Ativar avisos" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+      <span class="sino-off"></span>
+    </button>
     <button class="btn btn-ghost" id="btnReload" type="button" style="display:none">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
       Atualizar
     </button>
-    <button class="btn btn-ghost" id="btnOut" type="button" style="display:none">Sair</button>
+    <button class="btn btn-ghost btn-ico" id="btnOut" type="button" title="Esquecer este aparelho" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+    </button>
   </div>
 </div>
 
-<!-- LOGIN -->
+<!-- ACESSO -->
 <div class="login-wrap" id="loginView">
   <div class="login-card">
     <svg viewBox="0 0 100 100" style="width:44px;height:44px" aria-hidden="true"><use href="#nexaMarkShape"></use></svg>
-    <h1>Área restrita</h1>
-    <p>Entre com a conta cadastrada para ver os briefings recebidos.</p>
+    <h1>Painel Nexa</h1>
+    <p id="acessoTexto">Abra pelo seu link de acesso e este aparelho fica liberado para sempre. Se preferir, cole a chave abaixo.</p>
     <div class="field">
-      <label for="email">E-mail</label>
-      <input type="email" id="email" placeholder="seu@email.com" autocomplete="username">
+      <label for="chave">Chave de acesso</label>
+      <input type="text" id="chave" placeholder="cole aqui" autocomplete="off" spellcheck="false">
     </div>
-    <div class="field">
-      <label for="senha">Senha</label>
-      <div class="pass">
-        <input type="password" id="senha" placeholder="••••••••" autocomplete="current-password">
-        <button type="button" id="verSenha" aria-label="Mostrar senha">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12S5 5.5 12 5.5 22.5 12 22.5 12 19 18.5 12 18.5 1.5 12 1.5 12z"/><circle cx="12" cy="12" r="3.2"/></svg>
-        </button>
-      </div>
-    </div>
-    <button class="btn btn-solid" id="btnIn" type="button" style="width:100%">Entrar</button>
+    <button class="btn btn-solid" id="btnIn" type="button" style="width:100%">Abrir painel</button>
     <div class="msg" id="loginMsg"></div>
   </div>
 </div>
 
 <!-- LISTA -->
 <main id="appView" style="display:none">
+  <div class="stats" id="stats"></div>
+
   <div class="toolbar">
     <div class="tabs" id="tabs"></div>
     <input class="search" type="search" id="busca" placeholder="Buscar por nome, negócio ou protocolo...">
@@ -280,6 +323,8 @@ input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--a
 </main>
 
 </div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
 
 <script src="nexa-config.js"></script>
 <script type="module">
@@ -297,92 +342,227 @@ const STATUS = {
 
 const BALDE  = SB.bucket || 'briefings';
 const TABELA = SB.tabela || 'briefings';
+const GUARDA = 'nexa.chave';
 const CONFIGURADO = !!(SB.url && SB.anonKey && SB.url.indexOf('COLE_') !== 0 && SB.anonKey.indexOf('COLE_') !== 0);
 
-/* o e-mail e a senha aparecem sempre, mesmo antes do banco estar ligado */
-if(CFG.adminEmail && CFG.adminEmail.indexOf('seu@') !== 0) $('email').value = CFG.adminEmail;
-
-$('verSenha').addEventListener('click', () => {
-  const i = $('senha');
-  const mostrando = i.type === 'text';
-  i.type = mostrando ? 'password' : 'text';
-  $('verSenha').setAttribute('aria-label', mostrando ? 'Mostrar senha' : 'Ocultar senha');
-  $('verSenha').classList.toggle('on', !mostrando);
-});
-$('email').addEventListener('keydown', e => { if(e.key === 'Enter') $('senha').focus(); });
-
-if(CONFIGURADO){
-  iniciar();
-} else {
-  $('loginMsg').innerHTML = 'O banco ainda não foi ligado. Abra o arquivo <b>nexa-config.js</b> e cole a URL e a chave anon do seu projeto Supabase.';
-  $('btnIn').addEventListener('click', () => {
-    $('loginMsg').innerHTML = 'Ainda não dá para entrar: falta preencher o Supabase em <b>nexa-config.js</b>.';
-  });
+/* ================= CHAVE DE ACESSO =================
+   Sem e-mail e sem senha. A chave vem no link
+   (…/#k=SUA-CHAVE) e fica guardada neste aparelho.
+   Ela nunca é escrita no código, para não vazar junto
+   com o repositório.
+   =================================================== */
+function chaveDoLink(){
+  const h = (location.hash || '').replace(/^#/, '');
+  const m = h.match(/(?:^|&)k=([^&]+)/);
+  return m ? decodeURIComponent(m[1]) : null;
 }
 
+function lerChave(){
+  try{ return localStorage.getItem(GUARDA); }catch(e){ return null; }
+}
+function gravarChave(v){
+  try{ v ? localStorage.setItem(GUARDA, v) : localStorage.removeItem(GUARDA); }catch(e){}
+}
+
+const doLink = chaveDoLink();
+if(doLink){
+  gravarChave(doLink);
+  /* tira a chave da barra de endereço para não ficar exposta na tela */
+  history.replaceState(null, '', location.pathname + location.search);
+}
+let CHAVE = doLink || lerChave();
+
+/* ================= AVISOS ================= */
+const AVISOS = {
+  permitido(){ return 'Notification' in window && Notification.permission === 'granted'; },
+
+  async pedir(){
+    if(!('Notification' in window)) return false;
+    if(Notification.permission === 'granted') return true;
+    return (await Notification.requestPermission()) === 'granted';
+  },
+
+  bipe(){
+    try{
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      [880, 1320].forEach((hz, i) => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine'; o.frequency.value = hz;
+        o.connect(g); g.connect(ctx.destination);
+        const t = ctx.currentTime + i * 0.16;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.16, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+        o.start(t); o.stop(t + 0.24);
+      });
+      setTimeout(() => ctx.close(), 900);
+    }catch(e){}
+  },
+
+  toast(titulo, texto, aoClicar){
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.innerHTML = '<div class="t"><i></i>Briefing novo</div><b>' + esc(titulo) + '</b><span>' + esc(texto) + '</span>';
+    el.addEventListener('click', () => { fechar(); if(aoClicar) aoClicar(); });
+    $('toasts').appendChild(el);
+    const sair = setTimeout(fechar, 9000);
+    function fechar(){
+      clearTimeout(sair);
+      el.classList.add('sai');
+      setTimeout(() => el.remove(), 400);
+    }
+  },
+
+  sistema(titulo, texto){
+    if(!this.permitido()) return;
+    try{
+      const n = new Notification(titulo, {
+        body: texto, icon: 'icone-192.png', badge: 'icone-192.png',
+        tag: 'nexa-briefing', renotify: true, vibrate: [140, 70, 140]
+      });
+      n.onclick = () => { window.focus(); n.close(); };
+    }catch(e){}
+  }
+};
+
+function pintarSino(){
+  const b = $('btnSino'), on = AVISOS.permitido();
+  b.classList.toggle('on', on);
+  b.title = on ? 'Avisos ligados' : 'Ativar avisos neste aparelho';
+}
+
+$('btnSino').addEventListener('click', async () => {
+  if(AVISOS.permitido()){
+    AVISOS.bipe();
+    AVISOS.toast('Teste', 'É assim que um briefing novo vai aparecer.');
+    AVISOS.sistema('Nexa Web', 'Avisos estão funcionando neste aparelho.');
+    return;
+  }
+  const ok = await AVISOS.pedir();
+  pintarSino();
+  if(ok){ AVISOS.bipe(); AVISOS.sistema('Nexa Web', 'Pronto. Vou te avisar quando chegar briefing novo.'); }
+  else AVISOS.toast('Avisos bloqueados', 'Libere as notificações deste site nas configurações do navegador.');
+});
+
+/* ================= ENTRADA ================= */
+if(!CONFIGURADO){
+  $('acessoTexto').innerHTML = 'O banco ainda não foi ligado. Abra o arquivo <b>nexa-config.js</b> e cole a URL e a chave anon do seu projeto Supabase.';
+  $('chave').style.display = 'none';
+  $('btnIn').style.display = 'none';
+} else if(CHAVE){
+  abrirPainel();
+} else {
+  $('btnIn').addEventListener('click', () => {
+    const v = $('chave').value.trim();
+    if(!v){ $('loginMsg').textContent = 'Cole a sua chave de acesso.'; return; }
+    CHAVE = v; gravarChave(v); abrirPainel();
+  });
+  $('chave').addEventListener('keydown', e => { if(e.key === 'Enter') $('btnIn').click(); });
+}
+
+async function abrirPainel(){
+  $('loginView').style.display = 'none';
+  $('appView').style.display = 'block';
+  $('btnOut').style.display = 'inline-flex';
+  $('btnReload').style.display = 'inline-flex';
+  $('btnSino').style.display = 'inline-flex';
+  $('who').textContent = 'acesso liberado';
+  pintarSino();
+  iniciar();
+}
+
+$('btnOut').addEventListener('click', () => {
+  if(!confirm('Esquecer a chave neste aparelho? Você vai precisar do seu link de acesso para entrar de novo.')) return;
+  gravarChave(null);
+  location.reload();
+});
+
+/* ================= PAINEL ================= */
 async function iniciar(){
   const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.45.4');
-  const db = createClient(SB.url, SB.anonKey);
+
+  /* a chave viaja como cabeçalho e é conferida pelas políticas do banco */
+  const db = createClient(SB.url, SB.anonKey, {
+    global: { headers: { 'x-nexa-chave': CHAVE } },
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
 
   let dados = [];
+  let vistos = new Set();
   let filtro = 'todos';
   let termo = '';
+  let primeiraCarga = true;
 
-  /* ---------- login ---------- */
-  $('btnIn').addEventListener('click', entrar);
-  $('senha').addEventListener('keydown', e => { if(e.key === 'Enter') entrar(); });
-
-  async function entrar(){
-    const email = $('email').value.trim(), senha = $('senha').value;
-    $('loginMsg').classList.remove('ok');
-    if(!email || !senha){ $('loginMsg').textContent = 'Preencha o e-mail e a senha.'; return; }
-
-    $('loginMsg').textContent = '';
-    $('btnIn').disabled = true;
-    $('btnIn').textContent = 'Entrando...';
-    const { error } = await db.auth.signInWithPassword({ email, password: senha });
-    $('btnIn').disabled = false;
-    $('btnIn').textContent = 'Entrar';
-
-    if(error){
-      const m = {
-        'Invalid login credentials':'E-mail ou senha incorretos.',
-        'Email not confirmed':'Confirme o e-mail antes de entrar.'
-      };
-      $('loginMsg').textContent = m[error.message] || 'Não consegui entrar: ' + error.message;
-    }
-  }
-
-  $('btnOut').addEventListener('click', () => db.auth.signOut());
-  $('btnReload').addEventListener('click', carregar);
-
-  db.auth.onAuthStateChange((_evento, sessao) => aplicarSessao(sessao));
-  const { data: { session } } = await db.auth.getSession();
-  aplicarSessao(session);
-
-  function aplicarSessao(sessao){
-    const dentro = !!(sessao && sessao.user);
-    $('loginView').style.display = dentro ? 'none' : 'grid';
-    $('appView').style.display = dentro ? 'block' : 'none';
-    $('btnOut').style.display = dentro ? 'inline-flex' : 'none';
-    $('btnReload').style.display = dentro ? 'inline-flex' : 'none';
-    $('who').textContent = dentro ? sessao.user.email : '';
-    if(dentro) carregar();
-  }
+  $('btnReload').addEventListener('click', () => carregar(false));
 
   /* ---------- carregar ---------- */
-  async function carregar(){
-    $('detalhe').classList.remove('show');
-    $('lista').style.display = '';
-    $('lista').innerHTML = '<div class="loading">Carregando briefings</div>';
+  async function carregar(silencioso){
+    if(!silencioso){
+      $('detalhe').classList.remove('show');
+      $('lista').style.display = '';
+      $('lista').innerHTML = '<div class="loading">Carregando briefings</div>';
+    }
 
     const { data, error } = await db.from(TABELA).select('*').order('criado_em', { ascending:false });
+
     if(error){
-      $('lista').innerHTML = '<div class="empty"><b>Não consegui carregar</b>' + esc(error.message) + '</div>';
+      if(!silencioso) $('lista').innerHTML = '<div class="empty"><b>Não consegui carregar</b>' + esc(error.message) + '</div>';
       return;
     }
-    dados = data || [];
-    render();
+
+    const lista = data || [];
+    const novos = primeiraCarga ? [] : lista.filter(d => !vistos.has(String(d.id)));
+
+    dados = lista;
+    lista.forEach(d => vistos.add(String(d.id)));
+
+    if(!$('detalhe').classList.contains('show')) render();
+    else pintarStats();
+
+    novos.forEach(anunciar);
+    primeiraCarga = false;
+
+    if(!lista.length && !silencioso){
+      $('lista').innerHTML = '<div class="empty"><b>Nada por aqui</b>' +
+        'Assim que alguém preencher o agendamento, aparece nesta tela. ' +
+        'Se você esperava ver briefings, confira se a chave de acesso está certa.</div>';
+    }
+  }
+
+  function anunciar(novo){
+    const negocio = (novo.negocio && novo.negocio.nome) || 'Sem nome';
+    const resumo = [(novo.projeto && novo.projeto.tipo), (novo.projeto && novo.projeto.total)]
+      .filter(Boolean).join(' · ');
+    AVISOS.bipe();
+    AVISOS.toast(negocio, resumo || 'Toque para ver os detalhes.', () => abrir(novo.id));
+    AVISOS.sistema('Briefing novo · ' + negocio, resumo);
+    setTimeout(() => {
+      const el = $('lista').querySelector('[data-id="' + novo.id + '"]');
+      if(el) el.classList.add('novo-flash');
+    }, 60);
+  }
+
+  /* confere sozinho de tempos em tempos e ao voltar para a aba */
+  setInterval(() => { if(!document.hidden) carregar(true); }, 20000);
+  document.addEventListener('visibilitychange', () => { if(!document.hidden) carregar(true); });
+
+  await carregar(false);
+
+  /* ---------- números ---------- */
+  function pintarStats(){
+    const novos = dados.filter(d => (d.status || 'novo') === 'novo').length;
+    const andamento = dados.filter(d => d.status === 'andamento').length;
+    const soma = dados
+      .filter(d => (d.status || 'novo') !== 'concluido')
+      .reduce((t, d) => t + Number((d.projeto && d.projeto.valor) || 0)
+        + ((d.projeto && d.projeto.adicionais) || []).reduce((x, a) => x + Number(a.valor || 0), 0), 0);
+
+    $('stats').innerHTML = [
+      { n: novos, r: 'novos', c: '#3ee27f' },
+      { n: andamento, r: 'em andamento', c: 'var(--accent-light)' },
+      { n: dados.length, r: 'total recebido', c: 'var(--ink)' },
+      { n: brl(soma), r: 'em negociação', c: '#c295ff' }
+    ].map(x => `<div class="stat" style="--sc:${x.c}"><div class="n">${x.n}</div><div class="r">${x.r}</div></div>`).join('');
   }
 
   /* ---------- lista ---------- */
@@ -397,6 +577,7 @@ async function iniciar(){
   }
 
   function render(){
+    pintarStats();
     const contas = { todos:dados.length, novo:0, andamento:0, concluido:0 };
     dados.forEach(d => { const k = d.status || 'novo'; contas[k] = (contas[k] || 0) + 1; });
 
@@ -449,7 +630,6 @@ async function iniciar(){
     return `<div class="row"><span>${rot}</span><b>${v}</b></div>`;
   }
 
-  /* o balde é privado: os links das imagens valem 1 hora */
   async function linksDasImagens(imagens){
     if(!imagens || !imagens.length) return [];
     const caminhos = imagens.map(i => i.caminho);
@@ -561,6 +741,7 @@ async function iniciar(){
     $('btnVoltar').addEventListener('click', () => {
       $('detalhe').classList.remove('show');
       $('lista').style.display = '';
+      render();
       window.scrollTo({ top:0, behavior:'smooth' });
     });
 
@@ -569,7 +750,7 @@ async function iniciar(){
       const { error } = await db.from(TABELA).update({ status: novo }).eq('id', d.id);
       if(error){ $('detMsg').textContent = 'Não consegui salvar: ' + error.message; return; }
       d.status = novo;
-      render(); abrir(id);
+      abrir(id);
     }));
 
     $('btnCopiar').addEventListener('click', async () => {
@@ -591,12 +772,11 @@ async function iniciar(){
 
     $('btnExcluir').addEventListener('click', async () => {
       if(!confirm('Excluir o briefing ' + d.codigo + '? Isso não tem volta.')) return;
-      if((d.imagens || []).length){
-        await db.storage.from(BALDE).remove(d.imagens.map(i => i.caminho));
-      }
+      if((d.imagens || []).length) await db.storage.from(BALDE).remove(d.imagens.map(i => i.caminho));
       const { error } = await db.from(TABELA).delete().eq('id', d.id);
       if(error){ $('detMsg').textContent = 'Não consegui excluir: ' + error.message; return; }
       dados = dados.filter(x => x.id !== d.id);
+      vistos.delete(String(d.id));
       $('detalhe').classList.remove('show');
       $('lista').style.display = '';
       render();
