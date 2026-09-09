@@ -11,5 +11,5 @@ window.NEXA_CONFIG = {
      É isso que faz os dois conversarem.
      Termina sempre com /exec
      --------------------------------------------------------- */
-  api: 'COLE_AQUI_O_ENDERECO_DO_APPS_SCRIPT'
+  api: 'nx-cm24ec5qxl37vhi7oay5bezpe875'
 };
