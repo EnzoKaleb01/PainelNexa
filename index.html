@@ -329,7 +329,7 @@ input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--a
 <script src="nexa-config.js"></script>
 <script type="module">
 const CFG = window.NEXA_CONFIG || {};
-const SB = CFG.supabase || {};
+const API = CFG.api || '';
 const $ = id => document.getElementById(id);
 const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const brl = v => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
@@ -340,10 +340,8 @@ const STATUS = {
   concluido: { rotulo:'Concluído' }
 };
 
-const BALDE  = SB.bucket || 'briefings';
-const TABELA = SB.tabela || 'briefings';
 const GUARDA = 'nexa.chave';
-const CONFIGURADO = !!(SB.url && SB.anonKey && SB.url.indexOf('COLE_') !== 0 && SB.anonKey.indexOf('COLE_') !== 0);
+const CONFIGURADO = !!(API && API.indexOf('http') === 0 && API.indexOf('COLE_') !== 0);
 
 /* ================= CHAVE DE ACESSO =================
    Sem e-mail e sem senha. A chave vem no link
@@ -446,7 +444,7 @@ $('btnSino').addEventListener('click', async () => {
 
 /* ================= ENTRADA ================= */
 if(!CONFIGURADO){
-  $('acessoTexto').innerHTML = 'O banco ainda não foi ligado. Abra o arquivo <b>nexa-config.js</b> e cole a URL e a chave anon do seu projeto Supabase.';
+  $('acessoTexto').innerHTML = 'O painel ainda não foi ligado. Abra o arquivo <b>nexa-config.js</b> e cole o endereço do seu Apps Script.';
   $('chave').style.display = 'none';
   $('btnIn').style.display = 'none';
 } else if(CHAVE){
@@ -479,13 +477,18 @@ $('btnOut').addEventListener('click', () => {
 
 /* ================= PAINEL ================= */
 async function iniciar(){
-  const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.45.4');
 
-  /* a chave viaja como cabeçalho e é conferida pelas políticas do banco */
-  const db = createClient(SB.url, SB.anonKey, {
-    global: { headers: { 'x-nexa-chave': CHAVE } },
-    auth: { persistSession: false, autoRefreshToken: false }
-  });
+  /* a chave viaja na própria chamada e é conferida pelo Apps Script */
+  async function chamar(params){
+    const u = new URL(API);
+    u.searchParams.set('k', CHAVE);
+    Object.keys(params).forEach(k => u.searchParams.set(k, params[k]));
+    const r = await fetch(u.toString(), { method:'GET', redirect:'follow' });
+    if(!r.ok) throw new Error('o painel respondeu ' + r.status);
+    const j = await r.json();
+    if(!j || !j.ok) throw new Error((j && j.erro) || 'resposta inesperada');
+    return j;
+  }
 
   let dados = [];
   let vistos = new Set();
@@ -503,14 +506,14 @@ async function iniciar(){
       $('lista').innerHTML = '<div class="loading">Carregando briefings</div>';
     }
 
-    const { data, error } = await db.from(TABELA).select('*').order('criado_em', { ascending:false });
-
-    if(error){
-      if(!silencioso) $('lista').innerHTML = '<div class="empty"><b>Não consegui carregar</b>' + esc(error.message) + '</div>';
+    let lista = [];
+    try{
+      const r = await chamar({ acao:'listar' });
+      lista = r.itens || [];
+    }catch(err){
+      if(!silencioso) $('lista').innerHTML = '<div class="empty"><b>Não consegui carregar</b>' + esc(err.message) + '</div>';
       return;
     }
-
-    const lista = data || [];
     const novos = primeiraCarga ? [] : lista.filter(d => !vistos.has(String(d.id)));
 
     dados = lista;
@@ -630,12 +633,9 @@ async function iniciar(){
     return `<div class="row"><span>${rot}</span><b>${v}</b></div>`;
   }
 
-  async function linksDasImagens(imagens){
-    if(!imagens || !imagens.length) return [];
-    const caminhos = imagens.map(i => i.caminho);
-    const { data, error } = await db.storage.from(BALDE).createSignedUrls(caminhos, 3600);
-    if(error || !data) return imagens.map(i => Object.assign({}, i, { url:null }));
-    return imagens.map((im, k) => Object.assign({}, im, { url: data[k] && data[k].signedUrl }));
+  /* o Apps Script já devolve o link de cada imagem */
+  function linksDasImagens(imagens){
+    return imagens || [];
   }
 
   async function abrir(id){
@@ -650,7 +650,7 @@ async function iniciar(){
     $('detalhe').innerHTML = '<div class="loading">Abrindo</div>';
     window.scrollTo({ top:0, behavior:'smooth' });
 
-    const imgs = await linksDasImagens(d.imagens);
+    const imgs = linksDasImagens(d.imagens);
 
     $('detalhe').innerHTML = `
       <button class="btn btn-ghost" id="btnVoltar" type="button" style="margin-bottom:22px">
@@ -720,7 +720,7 @@ async function iniciar(){
         ${imgs.length ? `<div class="block">
           <h4>Imagens enviadas (${imgs.length})</h4>
           <div class="gal">${imgs.map((im,k) => im.url
-            ? `<a href="${esc(im.url)}" target="_blank" rel="noopener"><img src="${esc(im.url)}" alt="Referência ${k+1}" loading="lazy"><span>abrir</span></a>`
+            ? `<a href="${esc(im.abrir || im.url)}" target="_blank" rel="noopener"><img src="${esc(im.url)}" alt="Referência ${k+1}" loading="lazy"><span>abrir</span></a>`
             : `<a><span>indisponível</span></a>`).join('')}</div>
         </div>` : ''}
       </div>
@@ -747,8 +747,8 @@ async function iniciar(){
 
     $('detalhe').querySelectorAll('[data-st]').forEach(b => b.addEventListener('click', async () => {
       const novo = b.dataset.st;
-      const { error } = await db.from(TABELA).update({ status: novo }).eq('id', d.id);
-      if(error){ $('detMsg').textContent = 'Não consegui salvar: ' + error.message; return; }
+      try{ await chamar({ acao:'status', id:d.id, valor:novo }); }
+      catch(err){ $('detMsg').textContent = 'Não consegui salvar: ' + err.message; return; }
       d.status = novo;
       abrir(id);
     }));
@@ -772,9 +772,8 @@ async function iniciar(){
 
     $('btnExcluir').addEventListener('click', async () => {
       if(!confirm('Excluir o briefing ' + d.codigo + '? Isso não tem volta.')) return;
-      if((d.imagens || []).length) await db.storage.from(BALDE).remove(d.imagens.map(i => i.caminho));
-      const { error } = await db.from(TABELA).delete().eq('id', d.id);
-      if(error){ $('detMsg').textContent = 'Não consegui excluir: ' + error.message; return; }
+      try{ await chamar({ acao:'excluir', id:d.id }); }
+      catch(err){ $('detMsg').textContent = 'Não consegui excluir: ' + err.message; return; }
       dados = dados.filter(x => x.id !== d.id);
       vistos.delete(String(d.id));
       $('detalhe').classList.remove('show');
