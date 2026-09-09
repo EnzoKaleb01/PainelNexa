@@ -11,5 +11,5 @@ window.NEXA_CONFIG = {
      É isso que faz os dois conversarem.
      Termina sempre com /exec
      --------------------------------------------------------- */
-  api: 'https://enzokaleb01.github.io/PainelNexa/#k=nx-cm24ec5qxl37vhi7oay5bezpe875'
+  api: 'https://script.google.com/macros/s/AKfycbyXF5YGqhdi0SA9pRM5SuHaW9_3IYgC4b4srf46NLVPtfk9JRT97mCzZrfPsNz8SZFk1A/exec'
 };
