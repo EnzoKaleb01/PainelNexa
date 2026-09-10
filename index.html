@@ -131,6 +131,36 @@ input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--a
 #btnSino.on svg{animation:toca 2.4s var(--ease) infinite}
 @keyframes toca{0%,88%,100%{transform:none}92%{transform:rotate(-11deg)}96%{transform:rotate(9deg)}}
 
+/* ---------- liberar celular ---------- */
+.cel-fundo{
+  position:fixed;inset:0;z-index:300;display:grid;place-items:center;padding:20px;
+  background:rgba(5,5,10,.9);backdrop-filter:blur(10px);
+}
+.cel-fundo[hidden]{display:none}
+.cel-caixa{
+  width:min(400px,100%);border:1px solid var(--line-2);border-radius:var(--r-lg);
+  background:var(--void-2);padding:32px;text-align:center;
+  box-shadow:0 30px 80px rgba(0,0,0,.7);animation:entra .45s var(--ease) both;
+}
+.cel-caixa h3{
+  font-family:'Archivo',sans-serif;font-variation-settings:'wdth' 116;font-weight:800;
+  text-transform:uppercase;font-size:1.3rem;letter-spacing:-.03em;margin:0 0 10px;
+}
+.cel-caixa p{color:var(--ink-dim);font-size:.86rem;line-height:1.6;margin:0 0 24px}
+.qr{
+  background:#fff;border-radius:16px;padding:16px;display:grid;place-items:center;
+  margin:0 auto 20px;width:fit-content;min-width:180px;min-height:180px;
+}
+.qr svg,.qr img{display:block;width:190px;height:190px}
+.qr .aguarde{color:#5d6070;font-family:'JetBrains Mono',monospace;font-size:.56rem;letter-spacing:.2em;text-transform:uppercase}
+.cel-link{
+  font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:.04em;color:var(--ink-faint);
+  word-break:break-all;line-height:1.7;margin-bottom:22px;
+  border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--panel);
+}
+.cel-btns{display:flex;gap:10px}
+.cel-btns .btn{flex:1}
+
 /* ---------- avisos ---------- */
 .toasts{position:fixed;right:16px;bottom:16px;z-index:200;display:flex;flex-direction:column;gap:10px;max-width:min(340px,92vw)}
 .toast{
@@ -281,6 +311,9 @@ input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--a
   </div>
   <div class="top-right">
     <span class="who" id="who"></span>
+    <button class="btn btn-ghost btn-ico" id="btnCel" type="button" title="Liberar meu celular" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18.5h2"/></svg>
+    </button>
     <button class="btn btn-ghost btn-ico" id="btnSino" type="button" title="Ativar avisos" style="display:none">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
       <span class="sino-off"></span>
@@ -326,6 +359,19 @@ input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--a
 
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
+<div class="cel-fundo" id="celFundo" hidden>
+  <div class="cel-caixa">
+    <h3>Liberar o celular</h3>
+    <p>Aponte a câmera do celular para o código. O painel abre já liberado, e o aparelho fica salvo.</p>
+    <div class="qr" id="qr"></div>
+    <div class="cel-link" id="celLink"></div>
+    <div class="cel-btns">
+      <button class="btn btn-ghost" id="btnCopiarLink" type="button">Copiar link</button>
+      <button class="btn btn-solid" id="btnFecharCel" type="button">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <script src="nexa-config.js"></script>
 <script type="module">
 const CFG = window.NEXA_CONFIG || {};
@@ -355,20 +401,53 @@ function chaveDoLink(){
   return m ? decodeURIComponent(m[1]) : null;
 }
 
-function lerChave(){
-  try{ return localStorage.getItem(GUARDA); }catch(e){ return null; }
+/* Guardar a chave é o ponto fraco no celular: o modo privado bloqueia o
+   localStorage e, no iPhone, o app da tela inicial tem armazenamento
+   separado do Safari. Por isso tentamos os dois lugares. */
+function lerCookie(nome){
+  const m = document.cookie.match('(^|;)\\s*' + nome + '\\s*=\\s*([^;]+)');
+  return m ? decodeURIComponent(m[2]) : null;
 }
-function gravarChave(v){
-  try{ v ? localStorage.setItem(GUARDA, v) : localStorage.removeItem(GUARDA); }catch(e){}
+function gravarCookie(nome, v){
+  const base = '; path=/; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : '');
+  document.cookie = v
+    ? nome + '=' + encodeURIComponent(v) + '; max-age=' + (60*60*24*365) + base
+    : nome + '=; max-age=0' + base;
 }
 
-const doLink = chaveDoLink();
-if(doLink){
-  gravarChave(doLink);
-  /* tira a chave da barra de endereço para não ficar exposta na tela */
-  history.replaceState(null, '', location.pathname + location.search);
+function lerChave(){
+  let v = null;
+  try{ v = localStorage.getItem(GUARDA); }catch(e){}
+  return v || lerCookie(GUARDA);
 }
+
+/* devolve true só se a chave realmente ficou guardada em algum lugar */
+function gravarChave(v){
+  let ok = false;
+  try{
+    if(v){ localStorage.setItem(GUARDA, v); ok = localStorage.getItem(GUARDA) === v; }
+    else localStorage.removeItem(GUARDA);
+  }catch(e){}
+  gravarCookie(GUARDA, v);
+  if(!ok && v) ok = lerCookie(GUARDA) === v;
+  return ok;
+}
+
+/* aceita a chave em #k= ou ?k=, porque alguns aplicativos cortam o # ao abrir links */
+function chaveDaQuery(){
+  const m = (location.search || '').match(/[?&]k=([^&]+)/);
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+const doLink = chaveDoLink() || chaveDaQuery();
 let CHAVE = doLink || lerChave();
+
+if(doLink){
+  const guardou = gravarChave(doLink);
+  /* só limpa o endereço se a chave ficou salva. Se não ficou, ela precisa
+     continuar no link, senão a próxima recarga perde o acesso. */
+  if(guardou) history.replaceState(null, '', location.pathname);
+}
 
 /* ================= AVISOS ================= */
 const AVISOS = {
@@ -450,13 +529,59 @@ if(!CONFIGURADO){
 } else if(CHAVE){
   abrirPainel();
 } else {
+  $('acessoTexto').innerHTML = 'Abra pelo seu link de acesso e este aparelho fica liberado. ' +
+    'Se estiver no celular, o jeito mais fácil é abrir o painel no computador e tocar no ícone de celular na barra de cima.';
   $('btnIn').addEventListener('click', () => {
-    const v = $('chave').value.trim();
-    if(!v){ $('loginMsg').textContent = 'Cole a sua chave de acesso.'; return; }
-    CHAVE = v; gravarChave(v); abrirPainel();
+    let v = $('chave').value.trim();
+    /* se colou o link inteiro, aproveita só a chave */
+    const m = v.match(/[#?&]k=([^&\s]+)/);
+    if(m) v = decodeURIComponent(m[1]);
+    if(!v){ $('loginMsg').textContent = 'Cole a sua chave ou o link de acesso.'; return; }
+    CHAVE = v;
+    if(!gravarChave(v)) $('loginMsg').textContent = 'Entrei, mas não consegui guardar a chave neste navegador. Saindo do modo privado, ela fica salva.';
+    abrirPainel();
   });
   $('chave').addEventListener('keydown', e => { if(e.key === 'Enter') $('btnIn').click(); });
 }
+
+/* O QR é desenhado aqui mesmo, no seu navegador.
+   A chave nunca é enviada para nenhum serviço de terceiros. */
+function linkDeAcesso(){
+  return location.origin + location.pathname + '#k=' + encodeURIComponent(CHAVE);
+}
+
+async function mostrarQR(){
+  const link = linkDeAcesso();
+  $('celLink').textContent = link;
+  $('celFundo').hidden = false;
+  $('qr').innerHTML = '<span class="aguarde">gerando</span>';
+
+  try{
+    const mod = await import('https://esm.sh/qrcode-generator@1.4.4');
+    const qrcode = mod.default || mod;
+    const qr = qrcode(0, 'M');
+    qr.addData(link);
+    qr.make();
+    $('qr').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+    const svg = $('qr').querySelector('svg');
+    if(svg){ svg.setAttribute('width', '190'); svg.setAttribute('height', '190'); }
+  }catch(err){
+    $('qr').innerHTML = '<span class="aguarde">use o link abaixo</span>';
+  }
+}
+
+$('btnCel').addEventListener('click', mostrarQR);
+$('btnFecharCel').addEventListener('click', () => { $('celFundo').hidden = true; });
+$('celFundo').addEventListener('click', e => { if(e.target === $('celFundo')) $('celFundo').hidden = true; });
+$('btnCopiarLink').addEventListener('click', async () => {
+  try{
+    await navigator.clipboard.writeText(linkDeAcesso());
+    $('btnCopiarLink').textContent = 'Copiado';
+    setTimeout(() => { $('btnCopiarLink').textContent = 'Copiar link'; }, 1800);
+  }catch(e){
+    $('btnCopiarLink').textContent = 'Selecione o link acima';
+  }
+});
 
 async function abrirPainel(){
   $('loginView').style.display = 'none';
@@ -464,6 +589,7 @@ async function abrirPainel(){
   $('btnOut').style.display = 'inline-flex';
   $('btnReload').style.display = 'inline-flex';
   $('btnSino').style.display = 'inline-flex';
+  $('btnCel').style.display = 'inline-flex';
   $('who').textContent = 'acesso liberado';
   pintarSino();
   iniciar();
